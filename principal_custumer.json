@@ -1,0 +1,1709 @@
+{
+  "name": "principal_custumer",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.Body }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a meeting scheduling agent. Your task is to help the client book an appointment with a barber. From every message, always extract the base information: determine where the appointment should take place, meaning the city and location; determine when the appointment should happen, meaning the date and the time if specified; and determine the barber shop name, which is part of the location. Always take into account that today is {{$today}}.\n\n1. If the user specifies a precise hour, always begin by checking the barber’s booking schedule to see if that exact time slot is available. If the time slot is available. If the time slot is not available using this format YYYY-MM-DD HH:MM:SS+00\n\n2. If the user specifies a date without an exact hour, search for available barber time slots across an 8h frame within that date. After locating possible time slots, gather the complete information of the barber and confirm suitability.\n\n3. If the user does not provide a date, perform the search only by location.\n\n4. If the user provides no information related to time, date, or location, respond with the empty array from the output parser\n\nreturn base on the information the barber and the time availbale inside of arrays"
+        }
+      },
+      "id": "a27ed74f-95b8-4248-9dc8-e4e7e3ea7a50",
+      "name": "Meeting Scheduler Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1456,
+        16
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "andressantiagore@gmail.com",
+          "mode": "list",
+          "cachedResultName": "andressantiagor@hotmail.com"
+        },
+        "start": "={{ $fromAI(\"DateStart\") }}",
+        "end": "={{ $fromAI(\"dateofend\") }}",
+        "additionalFields": {
+          "attendees": [
+            "camilopineda100@gmail.com"
+          ],
+          "description": "Barber meeting",
+          "summary": "Hello world"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        3360,
+        -112
+      ],
+      "id": "f72ed886-7c30-4fba-be30-0e1b0a5c2961",
+      "name": "Create an event",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "validar que es lo que quiere el usuario",
+        "height": 80,
+        "width": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        1456
+      ],
+      "typeVersion": 1,
+      "id": "2a4d6b59-ffac-4881-bdb1-4d29af2685a2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "tableId": "Booking_testing",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "customerId"
+            },
+            {
+              "fieldId": "professionalId",
+              "fieldValue": "fake"
+            },
+            {
+              "fieldId": "notes",
+              "fieldValue": "fake"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3344,
+        64
+      ],
+      "id": "0cb3f073-64db-447a-9e07-8af4be95677a",
+      "name": "Create a row2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ujCg28xuhCRpQs12",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "create a propouse",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        1568
+      ],
+      "typeVersion": 1,
+      "id": "b53d7d21-b76a-47c7-9ead-c794f9cf26bf",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Como cliente quiero buscar\nbarberos por nombre\nbarbería ubicación\nNombre de barbería ???",
+        "height": 112,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        1312
+      ],
+      "typeVersion": 1,
+      "id": "b69dc2d1-893c-42a2-8fdd-1069570ede81",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "Buscar el barbero y sugerir una reunion\n",
+        "height": 112
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        1152
+      ],
+      "typeVersion": 1,
+      "id": "cbcc460c-2745-490b-9877-e4b1bfc5f6cf",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Query to look the information where the barber is located by city or neighborhood, and also can search by the name of the business",
+        "operation": "getAll",
+        "tableId": "Professional",
+        "limit": 2,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "city",
+              "condition": "ilike",
+              "keyValue": "={{ $fromAI(\"city\") }}"
+            },
+            {
+              "keyName": "neighborhood",
+              "condition": "ilike",
+              "keyValue": "={{ $fromAI(\"neighboor\") }}"
+            },
+            {
+              "keyName": "barbershopName",
+              "condition": "ilike",
+              "keyValue": "={{ $fromAI(\"buissness\") }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        352
+      ],
+      "id": "e6ec9002-c537-4e70-8ad0-615c6d0a9e06",
+      "name": "Found barber by location",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ujCg28xuhCRpQs12",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Base on the time frame look for the barber",
+        "operation": "getAll",
+        "tableId": "WeeklyAvailability",
+        "limit": 2,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "start_time",
+              "condition": "gt",
+              "keyValue": "={{ $fromAI(\"availabilityStart\") }}"
+            },
+            {
+              "keyName": "day_of_week",
+              "condition": "eq",
+              "keyValue": "={{ $fromAI(\"NumberOftheDayoftheWeek\") }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        1552,
+        288
+      ],
+      "id": "22c5cb9a-7ebd-407e-a2cc-29800307183b",
+      "name": "Found barber by date",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ujCg28xuhCRpQs12",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Base on the time Frame look from the barber if there is no booked meetings in their calendar",
+        "operation": "getAll",
+        "tableId": "Booking",
+        "limit": 5,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "start_at",
+              "condition": "eq",
+              "keyValue": "={{ $fromAI(\"UserTimeavailibity\") }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        448
+      ],
+      "id": "966047b8-8076-489b-9109-a4c72e965bf6",
+      "name": "barbers booking schedule",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ujCg28xuhCRpQs12",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"BarberName\": {\n        \"type\": \"string\"\n      },\n      \"start-time\": {\n        \"type\": \"string\",\n        \"format\": \"date-time\"\n      },\n      \"end-time\": {\n        \"type\": \"string\",\n        \"format\": \"date-time\"\n      },\n      \"atendee\": {\n        \"type\": \"string\",\n        \"format\": \"email\"\n      },\n      \"barberemail\": {\n        \"type\": \"string\",\n        \"format\": \"email\"\n      }\n    }\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1808,
+        224
+      ],
+      "id": "7fc946e9-36b5-4a8d-95b7-3d68a92dd9f4",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "9e86de0a-65b4-4637-a396-b1304fcf48b6",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        2512,
+        192
+      ],
+      "id": "a9c96d79-4e1f-42c9-b552-88bb53f01e45",
+      "name": "Webhook1",
+      "webhookId": "9e86de0a-65b4-4637-a396-b1304fcf48b6",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-5-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        464
+      ],
+      "id": "6a631ad9-c3cf-46fd-9f07-03ad460b48f1",
+      "name": "OpenRouter Chat Model3",
+      "credentials": {
+        "openRouterApi": {
+          "id": "R7LaWQCbzgw5kv4b",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1696,
+        -800
+      ],
+      "id": "04378cbc-2681-489d-bcb1-b90fbac91c03",
+      "name": "When clicking ‘Execute workflow’",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        -1552,
+        -576
+      ],
+      "id": "e7d6992d-4cbd-4fbc-8428-94b29ecfc2a0",
+      "name": "Send an SMS/MMS/WhatsApp message2",
+      "credentials": {
+        "twilioApi": {
+          "id": "mqUjgmlSVfSZTcwk",
+          "name": "Twilio account 3"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "Confirm meeting or porpouse new option",
+        "height": 80,
+        "width": 304
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1632,
+        -928
+      ],
+      "typeVersion": 1,
+      "id": "2ada9927-81d8-4a8f-bb14-aa0337ebf665",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.agree }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "77cd0048-0574-4626-a6a3-16f5ca2e6295"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "63c50f34-2971-4058-9ebb-46d2213e32ed",
+                    "leftValue": "={{ $json.output.notAgree }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "873a4e3f-ade6-4f68-9dc5-f26edc5ce084",
+                    "leftValue": "={{ $json.output.reschedule }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        3072,
+        176
+      ],
+      "id": "86f0742d-ef97-468b-b520-ae27007bca63",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "content": "\n## Flow of creating calendar meetings\n",
+        "height": 768,
+        "width": 1216
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1200,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "f16af470-48d9-49ca-b762-fb6c79dee265",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "from": "+14155238886",
+        "to": "+570000000000",
+        "toWhatsapp": true,
+        "message": "hello",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        -1520,
+        -800
+      ],
+      "id": "9c25e4b2-8083-4f53-aec9-b2a1f254dda0",
+      "name": "Send an SMS/MMS/WhatsApp message",
+      "credentials": {
+        "twilioApi": {
+          "id": "mqUjgmlSVfSZTcwk",
+          "name": "Twilio account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $data.body.Body }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Base on the user detect if the user want to confirm, cancel or found a new date"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        2704,
+        192
+      ],
+      "id": "2288ec9a-bde7-48b0-ae86-8cb35e186e38",
+      "name": "Agree meeting"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"agree\": {\n      \"type\": \"boolean\"\n    },\n    \"notAgree\": {\n      \"type\": \"boolean\"\n    },\n    \"reschedule\": {\n      \"type\": \"boolean\"\n    }\n  },\n  \"additionalProperties\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2848,
+        480
+      ],
+      "id": "135fb5cd-21f3-4b1f-b306-8f0d4cfa326b",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2704,
+        352
+      ],
+      "id": "ce7655af-28e0-404e-a596-cbaf852dc983",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "R7LaWQCbzgw5kv4b",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "Customer",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "phoneNumber",
+              "fieldValue": "={{ $('final_message_text').item.json.phone }}"
+            },
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $fromAI('name', '', 'string') }}"
+            },
+            {
+              "fieldId": "email",
+              "fieldValue": "={{ $fromAI('email', '', 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        1040
+      ],
+      "id": "ad3b10cf-a26d-4613-8f04-05fc08c064d4",
+      "name": "create_customer",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ujCg28xuhCRpQs12",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "Customer",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phoneNumber",
+              "keyValue": "={{ $('final_message_text').item.json.phone }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        2576,
+        1072
+      ],
+      "id": "212fea07-2a6b-4ae3-a899-bb551490762b",
+      "name": "get_customer",
+      "notesInFlow": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "ujCg28xuhCRpQs12",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "Customer",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phoneNumber",
+              "condition": "eq",
+              "keyValue": "={{ $('final_message_text').item.json.phone }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "city",
+              "fieldValue": "={{ $fromAI('city', '', 'string') }}"
+            },
+            {
+              "fieldId": "neighborhood",
+              "fieldValue": "={{ $fromAI('neighborhood', '', 'string') }}"
+            },
+            {
+              "fieldId": "address",
+              "fieldValue": "={{ $fromAI('address', '', 'string') }}"
+            },
+            {
+              "fieldId": "metadata",
+              "fieldValue": "={{ $fromAI('metadata', ``, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        2688,
+        1088
+      ],
+      "id": "c595fc45-a5c3-4ab4-bf8f-a5cc7932d7f5",
+      "name": "update_customer",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ujCg28xuhCRpQs12",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "9e86de0a-65b4-4637-a396-b1304fcf48b6",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        400,
+        320
+      ],
+      "id": "b7360369-bfe7-4f1c-8c94-fe27bc88493e",
+      "name": "webhook",
+      "webhookId": "9e86de0a-65b4-4637-a396-b1304fcf48b6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "204a23b3-644c-4f4c-b6cb-275d6150c2dc",
+              "name": "phone",
+              "value": "={{ $json.body.From.replaceAll(\"whatsapp:\",\"\") }}",
+              "type": "string"
+            },
+            {
+              "id": "32a6931e-d199-47e8-929b-d3e704a06118",
+              "name": "nameProfile",
+              "value": "={{ $json.body.ProfileName }}",
+              "type": "string"
+            },
+            {
+              "id": "a6e7c7e7-b005-4a6c-8261-25ecde1587c4",
+              "name": "messageType",
+              "value": "={{ $json.body.MessageType }}",
+              "type": "string"
+            },
+            {
+              "id": "6203270d-9723-4ecc-884e-fb142f3f6cb7",
+              "name": "messageText",
+              "value": "={{ $json.body.Body }}",
+              "type": "string"
+            },
+            {
+              "id": "27a850ae-9a4f-4c72-bdd4-bce6c0804a79",
+              "name": "messageAudio",
+              "value": "={{ $json.body.MediaContentType0 }}",
+              "type": "string"
+            },
+            {
+              "id": "81c6d357-378e-49e6-9c4d-aecfd9e88bf8",
+              "name": "messageAudioUrl",
+              "value": "={{ $json.body.MediaUrl0 }}",
+              "type": "string"
+            },
+            {
+              "id": "e4de8dce-21ac-42d8-9cd6-f225e220c9d2",
+              "name": "Latitude",
+              "value": "={{ $json.body.Latitude }}",
+              "type": "string"
+            },
+            {
+              "id": "b8260e35-621a-4d01-889d-2aaa8c0f0ce3",
+              "name": "Longitude",
+              "value": "={{ $json.body.Longitude }}",
+              "type": "string"
+            },
+            {
+              "id": "b6d62bd7-4506-426c-a124-0d015875f1b2",
+              "name": "phoneTo",
+              "value": "={{ $json.body.To.replaceAll(\"whatsapp:\",\"\") }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1488,
+        832
+      ],
+      "id": "eefdee23-9fe2-4ce1-a572-83b67ba2739c",
+      "name": "trasform_data_webhook"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a66421bd-22a4-4e4b-ac30-e249a1dbf190",
+                    "leftValue": "={{ $json.messageType }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "messageText"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "04170579-1d2f-4ff7-af5d-b70101fd1e9e",
+                    "leftValue": "={{ $json.messageType }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "messageAudio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.messageType }}",
+                    "rightValue": "location",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7e897864-0cc1-4020-b1b5-fd3763557da0"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "location"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1712,
+        816
+      ],
+      "id": "743838d7-35df-4022-8c04-59784c4e454a",
+      "name": "router_message"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "25ef902e-5034-42de-af8d-2d441efc77ec",
+              "name": "phone",
+              "value": "={{ $json.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "3e097734-2591-43df-8fa9-6825851b6310",
+              "name": "nameProfile",
+              "value": "={{ $json.nameProfile }}",
+              "type": "string"
+            },
+            {
+              "id": "84d6f32c-0e87-4323-a06a-95ddc8346d8a",
+              "name": "finalMessage",
+              "value": "={{ $('trasform_data_webhook').item.json.messageText }}",
+              "type": "string"
+            },
+            {
+              "id": "628779cf-6271-4179-9c25-dfff3c457083",
+              "name": "phoneTo",
+              "value": "={{ $json.phoneTo }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2016,
+        832
+      ],
+      "id": "55ad0542-f4c6-48cb-8630-c203bf98cfef",
+      "name": "final_message_text"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Eres un asistente llamado BARBER que interpreta mensajes recibidos por WhatsApp para gestionar citas en la barbería. Tu misión principal es registrar al cliente si es la primera vez que se comunica y luego agendar su cita.\n\nHoy es {{ $now }}. Zona horaria: America/Bogota (UTC-5)\n\n\nTu trabajo es entender lo que el usuario necesita y actuar en consecuencia, usando las herramientas disponibles. Solo gestionas el registro de clientes y citas. No respondes preguntas generales.\n\nHerramientas y Lógica de Registro:\nTu primera tarea, antes de cualquier agendamiento, es identificar al cliente. Para esto, cuentas con las siguientes herramientas:\n- `get_customer(phone_number: str, email: str)`: Permite buscar un cliente por su número de teléfono o correo electrónico.\n- `create_customer(name: str, phone_number: str, email: str)`: Registra un nuevo cliente en la base de datos.\n- `update_customer(phone_number: str, name: str, email: str)`: Actualiza los datos de un cliente existente.\n\nlos datos del cliente los debes guardar en los sigueintes campos:\n- name: nombre del cliente\n- phone_number: número de teléfono del cliente\n- email: correo electrónico del cliente\n- city: ciudad del cliente\n- neighborhood: barrio del cliente\n- address: dirección del cliente\n- metadata: datos adicionales del cliente, como el nombre del barbero favorito, el tipo de cabello, el color del cabello, el pelo largo o corto, etc. esta informacion se debe guardar en formato json\n\nMapea los datos en un json y luego envialos a la herramienta `create_customer` o `update_customer` asignandolos desde el json generado a los campos correspondientes en la base de datos\nlos datos los debes guardar en los campos correspondientes, si en dado caso no los tienes dejalos vacios o como null\n\nLógica de flujo de conversación:\n1.Verificación inicial: Cuando un usuario se comunica, usa la herramienta `get_customer` con el número de teléfono del que proviene el mensaje para verificar si ya está registrado.\n2.Cliente existente: Si el cliente ya está en la base de datos, salúdalo por su nombre, por ejemplo: \"¡Hola, [Nombre del cliente]! ¿Cómo puedo ayudarte hoy? ¿Te gustaría agendar una cita?\". Luego, procede con las tareas de gestión de citas.\n3.Cliente nuevo: Si el cliente no está en la base de datos, salúdalo y solicita su nombre y correo electrónico para poder registrarlo. Sé claro y conciso. Por ejemplo: \"¡Hola! Para poder ayudarte, necesito que me des tu nombre completo y tu correo electrónico.\"\n4.Recopilación de datos: Si el cliente envía los datos en mensajes separados, espera a tener tanto el nombre como el correo electrónico antes de actuar.\n5.Validación de correo: Una vez que tengas los datos, antes de registrar, usa `get_customer` con el correo electrónico proporcionado para verificar si ya existe en el sistema. Si ya existe, informa al cliente y pide que aclare o proporcione un correo diferente.\n6.Registro: Si el correo no está registrado, usa `create_customer` con el nombre, correo y el número de teléfono que ya tienes. Confirma el registro al cliente, por ejemplo: \"¡Excelente, [Nombre del cliente]! Tu registro ha sido completado con éxito.\"\n\nTareas de gestión de citas (una vez el cliente está registrado):\n- crear_evento: cuando el usuario quiere agendar una cita nueva\n- reprogramar_evento: cuando quiere cambiar la fecha o la hora de una cita existente\n- eliminar_evento: cuando quiere cancelar una cita existente\n- consultar_evento: cuando quiere saber cuándo tiene una cita\n\nEjemplos de mensajes y sus intenciones (después del registro):\n- “Agenda una cita con el barbero Juan mañana a las 4” = crear_evento\n- “Pasemos la cita del lunes para el miércoles” = reprogramar_evento\n- “Cancela la cita de hoy” = eliminar_evento\n- “¿Qué tengo esta semana?” = consultar_evento\n\nTu respuesta debe ser en lenguaje natural, clara y breve, como si estuvieras escribiendo por WhatsApp. Usa emojis si es apropiado.\n\nExtrae toda la información posible del mensaje: título, fecha, hora, duración y ubicación. Si algún dato importante no está claro (por ejemplo, la hora), pregúntalo de forma amable antes de ejecutar la acción.\n\nEjemplos de respuesta:\n- Registro exitoso: “¡Perfecto, ya te registré! Ahora, ¿qué día y a qué hora te gustaría agendar tu cita? 💇‍♂️”\n- Evento creado: “Listo, agendé tu cita ‘Corte de cabello’ para mañana a las 4:00 p.m. con el barbero Juan. 😊”\n- Evento reprogramado: “He actualizado tu cita. Ahora es el miércoles a las 3:00 p.m.”\n- Evento eliminado: “He cancelado tu cita. Si necesitas otra, dime. 👍”\n- Consulta: “Tienes una cita ‘Corte de cabello’ el viernes a las 10:00 a.m.”\n\nSi el mensaje es ambiguo o no se entiende qué desea el usuario, pídele amablemente que aclare su intención.\n\nNo devuelvas estructuras técnicas ni generes JSON. Tu única salida debe ser una respuesta conversacional humana.\n\nPuedes usar la memoria de los últimos 10 mensajes del usuario para mantener el contexto si es necesario.\n\nTen en cuenta estas expresiones comunes de fecha y su interpretación:\n- “mañana a las 10am” = día siguiente a la fecha actual, a las 10:00 a.m.\n- “el próximo lunes” = el lunes siguiente a la fecha actual\n- “dentro de 8 días” = ocho días después de la fecha actual\n- “el mes que viene” = el mismo día del mes siguiente\n- “este viernes por la tarde” = si el viernes ya pasó esta semana, se refiere al próximo viernes\n\nSi no se menciona una duración específica para la cita, asume que es de una hora.\n\nCuando uses una herramienta, asegúrate de proporcionar correctamente estos datos si están disponibles en el mensaje del usuario:\n- Título del evento = summary\n- Fecha y hora de inicio = startTime (formato ISO 8601)\n- Fecha y hora de finalización = endTime (puede calcularse si hay duración)\n- Descripción = description (opcional)\n- Ubicación = location (opcional)\n\nNo incluyas enlaces de videollamadas (como Google Meet) en tus respuestas, aunque la herramienta los devuelva.\n\nDatos del cliente\n\nNúmero de teléfono del cliente: {{ $json.phone }}\nmensaje del cliente: {{ $json.finalMessage }}. de aquí busca y mapea los datos del cliente conforme te lo indique anteriormente",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2352,
+        832
+      ],
+      "id": "e362738a-285e-44c9-9b9e-b6aae741f36c",
+      "name": "agent_crud_customer",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-5-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2192,
+        992
+      ],
+      "id": "ce00f0a5-8e18-45d1-bd2b-0afde6c5062d",
+      "name": "open_router_chat_model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "R7LaWQCbzgw5kv4b",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.phone }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2304,
+        1120
+      ],
+      "id": "0358e016-44f1-408a-941c-8609a5628718",
+      "name": "memory_model"
+    },
+    {
+      "parameters": {
+        "from": "=+14155238886",
+        "to": "={{ $('final_message_text').item.json.phone }}",
+        "toWhatsapp": true,
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        2736,
+        832
+      ],
+      "id": "fe264a49-54c0-4585-a001-b12ded672e31",
+      "name": "send_whatsapp_message",
+      "credentials": {
+        "twilioApi": {
+          "id": "mqUjgmlSVfSZTcwk",
+          "name": "Twilio account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "\n## Flow of creating user\n",
+        "height": 560,
+        "width": 1776
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1216,
+        704
+      ],
+      "typeVersion": 1,
+      "id": "52184fc9-106a-4d71-a1a3-392627eb5fa1",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8574fce5-743f-4a19-aa00-ecd43a32834a",
+              "leftValue": "={{ $json.output.registered }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        992,
+        304
+      ],
+      "id": "96bd7fc1-2441-457f-b437-68c44c02dbb9",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.WaId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        576,
+        496
+      ],
+      "id": "1c32d448-0acb-42bd-8506-02450bb71d22",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "RWNjotFVkh2MD3fR",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        448,
+        496
+      ],
+      "id": "caec2d50-5cbe-444c-8034-232daf767a76",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "R7LaWQCbzgw5kv4b",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "\n## Flow of creating calendar meetings\n",
+        "height": 944,
+        "width": 992
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2672,
+        -288
+      ],
+      "typeVersion": 1,
+      "id": "ee8e4d2e-537e-4280-b768-db4a6e469731",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.Body }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a **Schedule Assistant**.  \nCheck if the user already exists in the database using their WhatsApp number: `{{ $json.body.WaId }}`.  \n\n- If found → return `{ \"registered\": true }`  \n- If not found → return `{ \"registered\": false }`"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        592,
+        304
+      ],
+      "id": "3ed4c998-33a7-40a7-b107-207018a81464",
+      "name": "router response"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "GX4r0WpMVCx8LmLJ"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -768,
+        -352
+      ],
+      "id": "4d894c8a-0863-471c-8185-25128c57cc54",
+      "name": "Connect_calendar",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -608,
+        -352
+      ],
+      "id": "e8eb682e-b3ea-4c3d-a3c7-3fe9d0dab860",
+      "name": "custumer_calendar",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"registered\": {\n      \"type\": \"boolean\"\n    }\n  },\n  \"additionalProperties\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        736,
+        672
+      ],
+      "id": "c00e0886-d81a-4465-bb41-d14b58faa8f7",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Know if the user exists base on the phone ",
+        "operation": "get",
+        "tableId": "Customer",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phoneNumber",
+              "keyValue": "=+{{ $json.body.WaId }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        688,
+        480
+      ],
+      "id": "d6700364-295f-4288-a44b-f737a8eb3b11",
+      "name": "Get user info by phone",
+      "notesInFlow": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "ujCg28xuhCRpQs12",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "={{ $('final_message_text').item.json.phoneTo }}",
+        "to": "={{ $('final_message_text').item.json.phone }}",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        2192,
+        -80
+      ],
+      "id": "f9b88a26-32be-4946-8dd2-3c7ff49718a3",
+      "name": "send_whatsapp_message1",
+      "credentials": {
+        "twilioApi": {
+          "id": "O8kJpCxVbP2RC6JT",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2a41021f-92f2-4c39-abbb-b3231f4883c9",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1936,
+        16
+      ],
+      "id": "238bb954-2b64-4fd1-a769-76de61752c84",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "from": "={{ $('final_message_text').item.json.phoneTo }}",
+        "to": "={{ $('final_message_text').item.json.phone }}",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        2192,
+        128
+      ],
+      "id": "b00e9d1d-4a71-464f-8a22-6dd3aabd034a",
+      "name": "send_whatsapp_message2",
+      "credentials": {
+        "twilioApi": {
+          "id": "O8kJpCxVbP2RC6JT",
+          "name": "Twilio account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook1": [
+      {
+        "json": {
+          "headers": {
+            "host": "iothec.app.n8n.cloud",
+            "user-agent": "TwilioProxy/1.1",
+            "content-length": "556",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "34.205.24.244",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "9740b53b7323289e-IAD",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/x-www-form-urlencoded",
+            "i-twilio-idempotency-token": "4df586ad-3655-4e58-b7d4-0d072e774c3a",
+            "x-forwarded-for": "34.205.24.244, 172.70.43.183",
+            "x-forwarded-host": "iothec.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-40-669b86c79-rhnjz",
+            "x-home-region": "us1",
+            "x-is-trusted": "yes",
+            "x-real-ip": "34.205.24.244",
+            "x-twilio-signature": "bvC+OsqbXJHA3pLqxJ6/kON9MLM="
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "SmsMessageSid": "SMf2bba712b5cc1693ef6fa6081a2a4169",
+            "NumMedia": "0",
+            "ProfileName": "Andres",
+            "MessageType": "text",
+            "SmsSid": "SMf2bba712b5cc1693ef6fa6081a2a4169",
+            "WaId": "570000000000",
+            "SmsStatus": "received",
+            "Body": "Confirmo",
+            "To": "whatsapp:+14155238886",
+            "NumSegments": "1",
+            "ReferralNumMedia": "0",
+            "MessageSid": "SMf2bba712b5cc1693ef6fa6081a2a4169",
+            "AccountSid": "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            "ChannelMetadata": "{\"type\":\"whatsapp\",\"data\":{\"context\":{\"ProfileName\":\"Andres\",\"WaId\":\"570000000000\"}}}",
+            "From": "whatsapp:+570000000000",
+            "ApiVersion": "2010-04-01"
+          },
+          "webhookUrl": "https://iothec.app.n8n.cloud/webhook-test/9e86de0a-65b4-4637-a396-b1304fcf48b6",
+          "executionMode": "test"
+        }
+      }
+    ],
+    "webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "iothec.app.n8n.cloud",
+            "user-agent": "TwilioProxy/1.1",
+            "content-length": "562",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "44.204.236.187",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "97411f0876b0e5f7-IAD",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/x-www-form-urlencoded",
+            "i-twilio-idempotency-token": "5c52202f-7157-4cb2-8ce3-b515aa701500",
+            "x-forwarded-for": "44.204.236.187, 172.71.190.87",
+            "x-forwarded-host": "iothec.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-40-669b86c79-rhnjz",
+            "x-home-region": "us1",
+            "x-is-trusted": "yes",
+            "x-real-ip": "44.204.236.187",
+            "x-twilio-signature": "UygBQ2dK2Ot+F14Vrjz+A2NOkxw="
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "SmsMessageSid": "SM2bcd959ced34a5d63f2e039a7b9ca09a",
+            "NumMedia": "0",
+            "ProfileName": "Andres",
+            "MessageType": "text",
+            "SmsSid": "SM2bcd959ced34a5d63f2e039a7b9ca09a",
+            "WaId": "570000000000",
+            "SmsStatus": "received",
+            "Body": "Hoy a las 8 pm",
+            "To": "whatsapp:+14155238886",
+            "NumSegments": "1",
+            "ReferralNumMedia": "0",
+            "MessageSid": "SM2bcd959ced34a5d63f2e039a7b9ca09a",
+            "AccountSid": "ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+            "ChannelMetadata": "{\"type\":\"whatsapp\",\"data\":{\"context\":{\"ProfileName\":\"Andres\",\"WaId\":\"570000000000\"}}}",
+            "From": "whatsapp:+570000000000",
+            "ApiVersion": "2010-04-01"
+          },
+          "webhookUrl": "https://iothec.app.n8n.cloud/webhook/9e86de0a-65b4-4637-a396-b1304fcf48b6",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Found barber by location": {
+      "ai_tool": [
+        [
+          {
+            "node": "Meeting Scheduler Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Found barber by date": {
+      "ai_tool": [
+        [
+          {
+            "node": "Meeting Scheduler Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "barbers booking schedule": {
+      "ai_tool": [
+        [
+          {
+            "node": "Meeting Scheduler Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Meeting Scheduler Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meeting Scheduler Agent": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Meeting Scheduler Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Send an SMS/MMS/WhatsApp message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Agree meeting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an SMS/MMS/WhatsApp message2": {
+      "main": [
+        []
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a row2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        []
+      ]
+    },
+    "Agree meeting": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agree meeting",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agree meeting",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_customer": {
+      "ai_tool": [
+        [
+          {
+            "node": "agent_crud_customer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_customer": {
+      "ai_tool": [
+        [
+          {
+            "node": "agent_crud_customer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update_customer": {
+      "ai_tool": [
+        [
+          {
+            "node": "agent_crud_customer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "webhook": {
+      "main": [
+        [
+          {
+            "node": "router response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "trasform_data_webhook",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Meeting Scheduler Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "trasform_data_webhook": {
+      "main": [
+        [
+          {
+            "node": "router_message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "router_message": {
+      "main": [
+        [
+          {
+            "node": "final_message_text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "final_message_text": {
+      "main": [
+        [
+          {
+            "node": "agent_crud_customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent_crud_customer": {
+      "main": [
+        [
+          {
+            "node": "send_whatsapp_message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "open_router_chat_model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "agent_crud_customer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "memory_model": {
+      "ai_memory": [
+        [
+          {
+            "node": "agent_crud_customer",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Meeting Scheduler Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "trasform_data_webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "router response",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "router response",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "router response": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "custumer_calendar": {
+      "main": [
+        []
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "router response",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get user info by phone": {
+      "ai_tool": [
+        [
+          {
+            "node": "router response",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "send_whatsapp_message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "send_whatsapp_message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "28a196eb-aee1-4b10-b201-a27bfe3b8cd5",
+  "meta": {
+    "instanceId": "1013a5049e044edbfd01c98148e986eb21bea8837b764809949b2ca4ad8b3f57"
+  },
+  "id": "GX4r0WpMVCx8LmLJ",
+  "tags": []
+}
