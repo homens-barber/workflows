@@ -1,0 +1,577 @@
+{
+  "name": "Customers",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "9e86de0a-65b4-4637-a396-b1304fcf48b6",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -304,
+        32
+      ],
+      "id": "ab79b81d-6f34-42f0-bb78-0dae1857553b",
+      "name": "Webhook",
+      "webhookId": "9e86de0a-65b4-4637-a396-b1304fcf48b6"
+    },
+    {
+      "parameters": {
+        "content": "💈 Barbero\n\t•\tCancelar cita\nComo barbero quiero poder cancelar una cita desde el chat para liberar el horario en mi agenda.\n\t•\tConsultar cita específica\nComo barbero quiero consultar si tengo una cita en un horario específico para confirmar mi disponibilidad.\n\t•\tValidar/editar disponibilidad\nComo barbero quiero validar o editar mi disponibilidad para ajustar cambios sin perder la configuración inicial.\n\t•\tDefinir fechas de excepción\nComo barbero quiero definir fechas de excepción (ej. festivos, vacaciones) para que los clientes no agenden en esas fechas.\n\t•\tMarcar horas de no disponibilidad\nComo barbero quiero marcar horas específicas de no disponibilidad dentro de mis horarios para bloquear espacios que no puedo atender.\n\t•\tConfigurar horarios de atención\nComo barbero quiero configurar mis días y horarios de atención para que los clientes puedan ver mi disponibilidad.\n\t•\tRegistro barbero\nComo barbero quiero registrarme con mi nombre, barbería, ubicación y correo Gmail para que mi información quede guardada en el sistema.\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -160,
+        928
+      ],
+      "typeVersion": 1,
+      "id": "d758ab88-03de-411d-a673-385dfab57d87",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# client\n\n\t•\tRecordatorio de cita\nComo cliente quiero recibir mensajes de recordatorio básicos antes de la cita para no olvidarla.\n\t•\tConfirmación de cita\nComo cliente quiero recibir confirmación de mi cita para tener seguridad de que fue agendada.\n\t•\tAgendar cita\nComo cliente quiero agendar una cita en un horario disponible para que quede reservada automáticamente.\n\t•\tConsultar horarios disponibles\nComo cliente quiero ver los horarios disponibles de un barbero en un día específico para escoger la mejor hora.\n\t•\tConsultar días disponibles\nComo cliente quiero consultar qué días tiene disponibilidad un barbero para planear mi cita.\n\t•\tBuscar barbero\nComo cliente quiero buscar barberos por nombre, barbería o ubicación para encontrar el que más me convenga.\n\t•\tRegistro cliente\nComo cliente quiero registrarme con mi nombre, correo y ciudad para poder usar la plataforma.",
+        "height": 400,
+        "width": 816
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -176,
+        -400
+      ],
+      "typeVersion": 1,
+      "id": "303013d2-34c8-416d-8bbc-9782816adb48",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-5-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        400,
+        304
+      ],
+      "id": "85d91be0-c842-4824-ae75-b5cf7e5fbedb",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "R7LaWQCbzgw5kv4b",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Eres un asistente llamado BARBER que interpreta mensajes recibidos por WhatsApp para gestionar citas en la barbería. Tu misión principal es registrar al cliente si es la primera vez que se comunica y luego agendar su cita.\n\nHoy es {{ $now }}. Zona horaria: America/Bogota (UTC-5)\n\n\nTu trabajo es entender lo que el usuario necesita y actuar en consecuencia, usando las herramientas disponibles. Solo gestionas el registro de clientes y citas. No respondes preguntas generales.\n\nHerramientas y Lógica de Registro:\nTu primera tarea, antes de cualquier agendamiento, es identificar al cliente. Para esto, cuentas con las siguientes herramientas:\n- `get_customer(phone_number: str, email: str)`: Permite buscar un cliente por su número de teléfono o correo electrónico.\n- `create_customer(name: str, phone_number: str, email: str)`: Registra un nuevo cliente en la base de datos.\n- `update_customer(phone_number: str, name: str, email: str)`: Actualiza los datos de un cliente existente.\n\nLógica de flujo de conversación:\n1.Verificación inicial: Cuando un usuario se comunica, usa la herramienta `get_customer` con el número de teléfono del que proviene el mensaje para verificar si ya está registrado.\n2.Cliente existente: Si el cliente ya está en la base de datos, salúdalo por su nombre, por ejemplo: \"¡Hola, [Nombre del cliente]! ¿Cómo puedo ayudarte hoy? ¿Te gustaría agendar una cita?\". Luego, procede con las tareas de gestión de citas.\n3.Cliente nuevo: Si el cliente no está en la base de datos, salúdalo y solicita su nombre y correo electrónico para poder registrarlo. Sé claro y conciso. Por ejemplo: \"¡Hola! Para poder ayudarte, necesito que me des tu nombre completo y tu correo electrónico.\"\n4.Recopilación de datos: Si el cliente envía los datos en mensajes separados, espera a tener tanto el nombre como el correo electrónico antes de actuar.\n5.Validación de correo: Una vez que tengas los datos, antes de registrar, usa `get_customer` con el correo electrónico proporcionado para verificar si ya existe en el sistema. Si ya existe, informa al cliente y pide que aclare o proporcione un correo diferente.\n6.Registro: Si el correo no está registrado, usa `create_customer` con el nombre, correo y el número de teléfono que ya tienes. Confirma el registro al cliente, por ejemplo: \"¡Excelente, [Nombre del cliente]! Tu registro ha sido completado con éxito.\"\n\nTareas de gestión de citas (una vez el cliente está registrado):\n- crear_evento: cuando el usuario quiere agendar una cita nueva\n- reprogramar_evento: cuando quiere cambiar la fecha o la hora de una cita existente\n- eliminar_evento: cuando quiere cancelar una cita existente\n- consultar_evento: cuando quiere saber cuándo tiene una cita\n\nEjemplos de mensajes y sus intenciones (después del registro):\n- “Agenda una cita con el barbero Juan mañana a las 4” = crear_evento\n- “Pasemos la cita del lunes para el miércoles” = reprogramar_evento\n- “Cancela la cita de hoy” = eliminar_evento\n- “¿Qué tengo esta semana?” = consultar_evento\n\nTu respuesta debe ser en lenguaje natural, clara y breve, como si estuvieras escribiendo por WhatsApp. Usa emojis si es apropiado.\n\nExtrae toda la información posible del mensaje: título, fecha, hora, duración y ubicación. Si algún dato importante no está claro (por ejemplo, la hora), pregúntalo de forma amable antes de ejecutar la acción.\n\nEjemplos de respuesta:\n- Registro exitoso: “¡Perfecto, ya te registré! Ahora, ¿qué día y a qué hora te gustaría agendar tu cita? 💇‍♂️”\n- Evento creado: “Listo, agendé tu cita ‘Corte de cabello’ para mañana a las 4:00 p.m. con el barbero Juan. 😊”\n- Evento reprogramado: “He actualizado tu cita. Ahora es el miércoles a las 3:00 p.m.”\n- Evento eliminado: “He cancelado tu cita. Si necesitas otra, dime. 👍”\n- Consulta: “Tienes una cita ‘Corte de cabello’ el viernes a las 10:00 a.m.”\n\nSi el mensaje es ambiguo o no se entiende qué desea el usuario, pídele amablemente que aclare su intención.\n\nNo devuelvas estructuras técnicas ni generes JSON. Tu única salida debe ser una respuesta conversacional humana.\n\nPuedes usar la memoria de los últimos 10 mensajes del usuario para mantener el contexto si es necesario.\n\nTen en cuenta estas expresiones comunes de fecha y su interpretación:\n- “mañana a las 10am” = día siguiente a la fecha actual, a las 10:00 a.m.\n- “el próximo lunes” = el lunes siguiente a la fecha actual\n- “dentro de 8 días” = ocho días después de la fecha actual\n- “el mes que viene” = el mismo día del mes siguiente\n- “este viernes por la tarde” = si el viernes ya pasó esta semana, se refiere al próximo viernes\n\nSi no se menciona una duración específica para la cita, asume que es de una hora.\n\nCuando uses una herramienta, asegúrate de proporcionar correctamente estos datos si están disponibles en el mensaje del usuario:\n- Título del evento = summary\n- Fecha y hora de inicio = startTime (formato ISO 8601)\n- Fecha y hora de finalización = endTime (puede calcularse si hay duración)\n- Descripción = description (opcional)\n- Ubicación = location (opcional)\n\nNo incluyas enlaces de videollamadas (como Google Meet) en tus respuestas, aunque la herramienta los devuelva.\n\nData del cliente\n\nNúmero de teléfono del cliente {{ $json.phone }}\nmensaje del cliente {{ $json.finalMessage }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        48
+      ],
+      "id": "fba998a8-4fcd-47de-87e8-8bb4e16416bc",
+      "name": "Understand user porpouse",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "content": "I think we need a MCP here",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        48,
+        560
+      ],
+      "typeVersion": 1,
+      "id": "9ea56fa7-6c7d-465e-9a95-09daeb8c5501",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "204a23b3-644c-4f4c-b6cb-275d6150c2dc",
+              "name": "phone",
+              "value": "={{ $json.body.From }}",
+              "type": "string"
+            },
+            {
+              "id": "32a6931e-d199-47e8-929b-d3e704a06118",
+              "name": "nameProfile",
+              "value": "={{ $json.body.ProfileName }}",
+              "type": "string"
+            },
+            {
+              "id": "a6e7c7e7-b005-4a6c-8261-25ecde1587c4",
+              "name": "messageType",
+              "value": "={{ $json.body.MessageType }}",
+              "type": "string"
+            },
+            {
+              "id": "6203270d-9723-4ecc-884e-fb142f3f6cb7",
+              "name": "messageText",
+              "value": "={{ $json.body.Body }}",
+              "type": "string"
+            },
+            {
+              "id": "27a850ae-9a4f-4c72-bdd4-bce6c0804a79",
+              "name": "messageAudio",
+              "value": "={{ $json.body.MediaContentType0 }}",
+              "type": "string"
+            },
+            {
+              "id": "81c6d357-378e-49e6-9c4d-aecfd9e88bf8",
+              "name": "messageAudioUrl",
+              "value": "={{ $json.body.MediaUrl0 }}",
+              "type": "string"
+            },
+            {
+              "id": "e4de8dce-21ac-42d8-9cd6-f225e220c9d2",
+              "name": "Latitude",
+              "value": "={{ $json.body.Latitude }}",
+              "type": "string"
+            },
+            {
+              "id": "b8260e35-621a-4d01-889d-2aaa8c0f0ce3",
+              "name": "Longitude",
+              "value": "={{ $json.body.Longitude }}",
+              "type": "string"
+            },
+            {
+              "id": "b6d62bd7-4506-426c-a124-0d015875f1b2",
+              "name": "phoneTo",
+              "value": "={{ $json.body.To }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        48
+      ],
+      "id": "1270a87c-4f0a-41c8-9dcb-f3a6fcd90589",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "25ef902e-5034-42de-af8d-2d441efc77ec",
+              "name": "phone",
+              "value": "={{ $json.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "3e097734-2591-43df-8fa9-6825851b6310",
+              "name": "nameProfile",
+              "value": "={{ $json.nameProfile }}",
+              "type": "string"
+            },
+            {
+              "id": "84d6f32c-0e87-4323-a06a-95ddc8346d8a",
+              "name": "finalMessage",
+              "value": "={{ $('Edit Fields').item.json.messageText }}",
+              "type": "string"
+            },
+            {
+              "id": "628779cf-6271-4179-9c25-dfff3c457083",
+              "name": "phoneTo",
+              "value": "={{ $json.phoneTo }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        16
+      ],
+      "id": "7a70295d-fe00-4d7a-bb81-2ed8b69f6f6a",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a66421bd-22a4-4e4b-ac30-e249a1dbf190",
+                    "leftValue": "={{ $json.messageType }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "messageText"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "04170579-1d2f-4ff7-af5d-b70101fd1e9e",
+                    "leftValue": "={{ $json.messageType }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "messageAudio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.messageType }}",
+                    "rightValue": "location",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7e897864-0cc1-4020-b1b5-fd3763557da0"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "location"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        80,
+        96
+      ],
+      "id": "14efb1b0-52dc-46a1-a0b2-dacd2b2aa3fb",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "from": "={{ $('Edit Fields1').item.json.phoneTo }}",
+        "to": "={{ $('Edit Fields1').item.json.phone }}",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        960,
+        64
+      ],
+      "id": "11cfa829-22eb-405a-94c8-c7cad70263b0",
+      "name": "Send an SMS/MMS/WhatsApp message",
+      "credentials": {
+        "twilioApi": {
+          "id": "O8kJpCxVbP2RC6JT",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "Customer",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "phoneNumber",
+              "fieldValue": "={{ $('Edit Fields1').item.json.phone }}"
+            },
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('fieldValues1_Field_Value', `Nombre del cliente`, 'string') }}"
+            },
+            {
+              "fieldId": "email",
+              "fieldValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('fieldValues2_Field_Value', `Correo electrónico del cliente`, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        832,
+        288
+      ],
+      "id": "66651e71-bce6-4f39-8b2b-f5ca5c1ebda4",
+      "name": "create_customer",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ujCg28xuhCRpQs12",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "Customer",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phoneNumber",
+              "keyValue": "={{ $('Edit Fields1').item.json.phone }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        688,
+        304
+      ],
+      "id": "bf9ec1eb-d098-4a35-86b1-13d41cdc5cf6",
+      "name": "get_customer",
+      "notesInFlow": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "ujCg28xuhCRpQs12",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "Customer",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions0_Field_Value', `Actualiza el registro del cliente validando donde el ID obtenido de igual al registrado en la bd`, 'string') }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "city",
+              "fieldValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('fieldValues0_Field_Value', ``, 'string') }}"
+            },
+            {
+              "fieldId": "neighborhood",
+              "fieldValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('fieldValues1_Field_Value', ``, 'string') }}"
+            },
+            {
+              "fieldId": "address",
+              "fieldValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('fieldValues2_Field_Value', ``, 'string') }}"
+            },
+            {
+              "fieldId": "metadata",
+              "fieldValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('fieldValues3_Field_Value', ``, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        992,
+        288
+      ],
+      "id": "d91be5e1-a344-4016-afc9-166d04f3523b",
+      "name": "update_customer",
+      "credentials": {
+        "supabaseApi": {
+          "id": "ujCg28xuhCRpQs12",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.phone }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        256
+      ],
+      "id": "d09a066e-47fd-411b-b286-c205812bdbc3",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Understand user porpouse",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Understand user porpouse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Understand user porpouse": {
+      "main": [
+        [
+          {
+            "node": "Send an SMS/MMS/WhatsApp message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create_customer": {
+      "ai_tool": [
+        [
+          {
+            "node": "Understand user porpouse",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_customer": {
+      "ai_tool": [
+        [
+          {
+            "node": "Understand user porpouse",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "update_customer": {
+      "ai_tool": [
+        [
+          {
+            "node": "Understand user porpouse",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Understand user porpouse",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "10449fc2-4c44-4d15-8508-90e62b2d1f6a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1013a5049e044edbfd01c98148e986eb21bea8837b764809949b2ca4ad8b3f57"
+  },
+  "id": "p1SQkexe5OpO0PH5",
+  "tags": []
+}
